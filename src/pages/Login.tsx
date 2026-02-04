@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   TextInput,
@@ -9,11 +9,12 @@ import {
   Stack,
   Text,
   Anchor,
-  Box,
   Group,
+  Center,
+  Loader,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
-import { signIn, signUp } from "../lib/auth-client";
+import { signIn, signUp, useSession } from "../lib/auth-client";
 import Logo from "../assets/logo-dark.svg?react";
 
 interface FormValues {
@@ -24,9 +25,16 @@ interface FormValues {
 
 export default function Login() {
   const navigate = useNavigate();
+  const { data: session, isPending } = useSession();
   const [isSignUp, setIsSignUp] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (session) {
+      navigate("/", { replace: true });
+    }
+  }, [session, navigate]);
 
   const form = useForm<FormValues>({
     mode: "uncontrolled",
@@ -78,6 +86,14 @@ export default function Login() {
       setLoading(false);
     }
   };
+
+  if (isPending) {
+    return (
+      <Center h="100vh">
+        <Loader />
+      </Center>
+    );
+  }
 
   return (
     <Container size={420} my={40}>
