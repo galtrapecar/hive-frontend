@@ -5,6 +5,7 @@ import type { CSSVariablesResolver } from "@mantine/core";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Login from "./pages/Login";
 import Home from "./pages/Home";
+import CreateOrganization from "./pages/CreateOrganization";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 const theme = createTheme({
@@ -36,6 +37,14 @@ export default function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route
+            path="/create-organization"
+            element={
+              <ProtectedRoute requireOrganization={false}>
+                <CreateOrganization />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/"
             element={
