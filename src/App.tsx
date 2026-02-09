@@ -7,6 +7,7 @@ import Login from "./pages/Login";
 import Home from "./pages/Home";
 import CreateOrganization from "./pages/CreateOrganization";
 import ProtectedRoute from "./components/ProtectedRoute";
+import MainLayout from "./components/MainLayout";
 
 const theme = createTheme({
   white: "#FFFCF1",
@@ -49,10 +50,12 @@ export default function App() {
             path="/"
             element={
               <ProtectedRoute>
-                <Home />
+                <MainLayout />
               </ProtectedRoute>
             }
-          />
+          >
+            <Route index element={<Home />} />
+          </Route>
         </Routes>
       </BrowserRouter>
     </MantineProvider>

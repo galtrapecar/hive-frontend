@@ -18,9 +18,10 @@ import {
   IconUsers,
   IconShieldCheck,
   IconRocket,
+  IconLogout,
 } from "@tabler/icons-react";
 import { useForm } from "@mantine/form";
-import { organization, useSession } from "../lib/auth-client";
+import { organization, signOut, useSession } from "../lib/auth-client";
 
 interface FormValues {
   name: string;
@@ -143,7 +144,7 @@ export default function CreateOrganization() {
                   />
                   <TextInput
                     label="URL Slug"
-                    placeholder="acme-inc"
+                    placeholder="hive-inc"
                     description="This will be used in your organization's URL"
                     size="md"
                     leftSection={
@@ -165,6 +166,17 @@ export default function CreateOrganization() {
                   </Button>
                 </Stack>
               </form>
+
+              <Button
+                variant="subtle"
+                color="gray"
+                size="sm"
+                mt="md"
+                leftSection={<IconLogout size={16} />}
+                onClick={() => signOut()}
+              >
+                Log out
+              </Button>
             </Box>
           </Stack>
         </Grid.Col>
