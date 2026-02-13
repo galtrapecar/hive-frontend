@@ -5,6 +5,7 @@ import type { CSSVariablesResolver } from "@mantine/core";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Login from "./pages/Login";
 import Home from "./pages/Home";
+import Orders from "./pages/Orders";
 import CreateOrganization from "./pages/CreateOrganization";
 import ProtectedRoute from "./components/ProtectedRoute";
 import MainLayout from "./components/MainLayout";
@@ -55,6 +56,7 @@ export default function App() {
             }
           >
             <Route index element={<Home />} />
+            <Route path="orders" element={<Orders />} />
           </Route>
         </Routes>
       </BrowserRouter>

@@ -26,7 +26,7 @@ interface FormValues {
 export default function Login() {
   const navigate = useNavigate();
   const { data: session, isPending } = useSession();
-  const [isSignUp, setIsSignUp] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(false)
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
