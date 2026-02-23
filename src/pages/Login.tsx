@@ -14,7 +14,7 @@ import {
   Loader,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
-import { signIn, signUp, useSession } from "../lib/auth-client";
+import { authClient, signIn, signUp, useSession } from "../lib/auth-client";
 import Logo from "../assets/logo-dark.svg?react";
 
 interface FormValues {

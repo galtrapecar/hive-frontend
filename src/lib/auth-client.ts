@@ -9,3 +9,4 @@ export const authClient = createAuthClient({
 export const { signIn, signUp, signOut, useSession } = authClient;
 export const { useListOrganizations, useActiveOrganization } = authClient;
 export const organization = authClient.organization;
+export { authClient as default };

@@ -8,20 +8,16 @@ import {
   LoadingOverlay,
   Box,
   Button,
-  Modal,
-  TextInput,
-  NumberInput,
-  Textarea,
-  Stack,
+  Badge,
 } from "@mantine/core";
-import { DateTimePicker } from "@mantine/dates";
-import { useForm } from "@mantine/form";
 import { useDisclosure } from "@mantine/hooks";
-import { IconPlus } from "@tabler/icons-react";
+import { IconPlus, IconTrash } from "@tabler/icons-react";
 import {
   useOrderControllerFindAllQuery,
-  useOrderControllerCreateMutation,
+  useOrderControllerRemoveMutation,
 } from "../redux/generatedApi";
+import AddOrderModal from "../components/AddOrderModal";
+import ActionMenu from "../components/ActionMenu";
 import { useActiveOrganization } from "../lib/auth-client";
 
 interface Order {
@@ -34,6 +30,7 @@ interface Order {
   dropoffPoint: string;
   dropoffTime: string;
   description?: string;
+  plan?: { id: number; status: "PENDING" | "IN_PROGRESS" | "COMPLETED" } | null;
 }
 
 interface PaginatedResponse {
@@ -46,16 +43,11 @@ interface PaginatedResponse {
   };
 }
 
-interface OrderFormValues {
-  customer: string;
-  price: number;
-  weight: number;
-  pickupPoint: string;
-  pickupTime: Date | null;
-  dropoffPoint: string;
-  dropoffTime: Date | null;
-  description: string;
-}
+const PLAN_STATUS_COLOR: Record<string, string> = {
+  PENDING: "yellow",
+  IN_PROGRESS: "blue",
+  COMPLETED: "green",
+};
 
 const LIMIT = 10;
 
@@ -68,59 +60,25 @@ export default function Orders() {
     data: raw,
     isLoading,
     refetch,
-  } = useOrderControllerFindAllQuery({
-    page: String(page),
-    limit: String(LIMIT),
-  });
-
-  const [createOrder, { isLoading: isCreating }] =
-    useOrderControllerCreateMutation();
-
-  const form = useForm<OrderFormValues>({
-    mode: "controlled",
-    initialValues: {
-      customer: "",
-      price: 0,
-      weight: 0,
-      pickupPoint: "",
-      pickupTime: null,
-      dropoffPoint: "",
-      dropoffTime: null,
-      description: "",
+  } = useOrderControllerFindAllQuery(
+    {
+      organizationId: activeOrg?.id || "",
+      page: String(page),
+      limit: String(LIMIT),
     },
-    validate: {
-      customer: (v) => (v.trim() ? null : "Customer is required"),
-      price: (v) => (v > 0 ? null : "Price must be greater than 0"),
-      weight: (v) => (v > 0 ? null : "Weight must be greater than 0"),
-      pickupPoint: (v) => (v.trim() ? null : "Pickup point is required"),
-      pickupTime: (v) => (v ? null : "Pickup time is required"),
-      dropoffPoint: (v) => (v.trim() ? null : "Dropoff point is required"),
-      dropoffTime: (v, values) => {
-        if (!v) return "Dropoff time is required";
-        if (values.pickupTime && v <= values.pickupTime)
-          return "Dropoff time must be after pickup time";
-        return null;
-      },
-    },
-  });
+    {
+      skip: !activeOrg?.id,
+    }
+  );
 
-  const handleSubmit = async (values: OrderFormValues) => {
-    if (!activeOrg) return;
-    await createOrder({
-      createOrderDto: {
-        customer: values.customer,
-        price: values.price,
-        weight: values.weight,
-        pickupPoint: values.pickupPoint,
-        pickupTime: new Date(values.pickupTime!).toISOString(),
-        dropoffPoint: values.dropoffPoint,
-        dropoffTime: new Date(values.dropoffTime!).toISOString(),
-        description: values.description || undefined,
-        organizationId: activeOrg.id,
-      },
+  const [deleteOrder] = useOrderControllerRemoveMutation();
+
+  const handleDelete = async (orderId: number) => {
+    if (!activeOrg?.id) return;
+    await deleteOrder({
+      id: orderId,
+      organizationId: activeOrg.id
     }).unwrap();
-    form.reset();
-    close();
     refetch();
   };
 
@@ -153,7 +111,8 @@ export default function Orders() {
                 <Table.Th>Weight</Table.Th>
                 <Table.Th>Pickup</Table.Th>
                 <Table.Th>Dropoff</Table.Th>
-                <Table.Th>Description</Table.Th>
+                <Table.Th>Status</Table.Th>
+                <Table.Th>Actions</Table.Th>
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>
@@ -164,7 +123,40 @@ export default function Orders() {
                   <Table.Td>{order.weight}</Table.Td>
                   <Table.Td>{order.pickupPoint}</Table.Td>
                   <Table.Td>{order.dropoffPoint}</Table.Td>
-                  <Table.Td>{order.description ?? "—"}</Table.Td>
+                  <Table.Td>
+                    <Badge
+                      color={
+                        order.plan
+                          ? PLAN_STATUS_COLOR[order.plan.status]
+                          : "gray"
+                      }
+                      variant="light"
+                    >
+                      {order.plan
+                        ? order.plan.status.replace("_", " ")
+                        : "Unplanned"}
+                    </Badge>
+                  </Table.Td>
+                  <Table.Td>
+                    <ActionMenu
+                      groups={[
+                        {
+                          label: "Danger Zone",
+                          items: [
+                            {
+                              label: "Delete",
+                              leftSection: <IconTrash size={16} />,
+                              danger: true,
+                              onConfirm: () => handleDelete(order.id),
+                              confirmTitle: "Delete order?",
+                              confirmDescription:
+                                "This action cannot be undone.",
+                            },
+                          ],
+                        },
+                      ]}
+                    />
+                  </Table.Td>
                 </Table.Tr>
               ))}
             </Table.Tbody>
@@ -176,78 +168,7 @@ export default function Orders() {
         <Pagination total={totalPages} value={page} onChange={setPage} />
       </Group>
 
-      <Modal opened={opened} onClose={close} title="Add Order" size="lg">
-        <form onSubmit={form.onSubmit(handleSubmit)}>
-          <Stack>
-            <TextInput
-              label="Customer"
-              placeholder="Customer name"
-              withAsterisk
-              {...form.getInputProps("customer")}
-            />
-            <Group grow>
-              <NumberInput
-                label="Price"
-                placeholder="0.00"
-                min={0}
-                decimalScale={2}
-                withAsterisk
-                {...form.getInputProps("price")}
-              />
-              <NumberInput
-                label="Weight"
-                placeholder="0"
-                min={0}
-                withAsterisk
-                {...form.getInputProps("weight")}
-              />
-            </Group>
-            <Group grow>
-              <TextInput
-                label="Pickup Point"
-                placeholder="Pickup address"
-                withAsterisk
-                {...form.getInputProps("pickupPoint")}
-              />
-              <DateTimePicker
-                label="Pickup Time"
-                placeholder="Pick date and time"
-                withAsterisk
-                clearable
-                {...form.getInputProps("pickupTime")}
-              />
-            </Group>
-            <Group grow>
-              <TextInput
-                label="Dropoff Point"
-                placeholder="Dropoff address"
-                withAsterisk
-                {...form.getInputProps("dropoffPoint")}
-              />
-              <DateTimePicker
-                label="Dropoff Time"
-                placeholder="Pick date and time"
-                withAsterisk
-                clearable
-                {...form.getInputProps("dropoffTime")}
-              />
-            </Group>
-            <Textarea
-              label="Description"
-              placeholder="Optional notes"
-              {...form.getInputProps("description")}
-            />
-            <Group justify="flex-end">
-              <Button variant="default" onClick={close}>
-                Cancel
-              </Button>
-              <Button type="submit" loading={isCreating}>
-                Create Order
-              </Button>
-            </Group>
-          </Stack>
-        </form>
-      </Modal>
+      <AddOrderModal opened={opened} onClose={close} onCreated={refetch} />
     </Box>
   );
 }
