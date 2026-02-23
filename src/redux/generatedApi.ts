@@ -76,6 +76,18 @@ const injectedRtkApi = api.injectEndpoints({
         },
       }),
     }),
+    routingControllerGeocode: build.query<
+      RoutingControllerGeocodeApiResponse,
+      RoutingControllerGeocodeApiArg
+    >({
+      query: (queryArg) => ({
+        url: `/routing/geocode`,
+        params: {
+          q: queryArg.q,
+          limit: queryArg.limit,
+        },
+      }),
+    }),
   }),
   overrideExisting: false,
 });
@@ -122,13 +134,23 @@ export type OrderControllerRemoveApiArg = {
   id: number;
   organizationId: string;
 };
+export type RoutingControllerGeocodeApiResponse =
+  /** status 200  */ GeocodeResponseItemDto[];
+export type RoutingControllerGeocodeApiArg = {
+  q: string;
+  limit?: number;
+};
 export type ExtractedOrderDto = {
   customer: string;
   price: number;
   weight: number;
   pickupPoint: string;
+  pickupLat?: number;
+  pickupLng?: number;
   pickupTime: string;
   dropoffPoint: string;
+  dropoffLat?: number;
+  dropoffLng?: number;
   dropoffTime: string;
   description?: string;
 };
@@ -146,8 +168,12 @@ export type OrderResponseDto = {
   price: number;
   weight: number;
   pickupPoint: string;
+  pickupLat?: object;
+  pickupLng?: object;
   pickupTime: string;
   dropoffPoint: string;
+  dropoffLat?: object;
+  dropoffLng?: object;
   dropoffTime: string;
   description?: string;
   plan?: PlanDto | null;
@@ -160,8 +186,12 @@ export type CreateOrderDto = {
   price: number;
   weight: number;
   pickupPoint: string;
+  pickupLat?: number;
+  pickupLng?: number;
   pickupTime: string;
   dropoffPoint: string;
+  dropoffLat?: number;
+  dropoffLng?: number;
   dropoffTime: string;
   description?: string;
 };
@@ -181,17 +211,37 @@ export type UpdateOrderDto = {
   price?: number;
   weight?: number;
   pickupPoint?: string;
+  pickupLat?: number;
+  pickupLng?: number;
   pickupTime?: string;
   dropoffPoint?: string;
+  dropoffLat?: number;
+  dropoffLng?: number;
   dropoffTime?: string;
   description?: string;
 };
+export type GeocodeResponseItemDto = {
+  name: string;
+  lat: number;
+  lng: number;
+  country?: string;
+  city?: string;
+  state?: string;
+  postcode?: string;
+  street?: string;
+  housenumber?: string;
+};
 export const {
   useAppControllerGetHelloQuery,
+  useLazyAppControllerGetHelloQuery,
   useAiControllerExtractOrderFromFileMutation,
   useOrderControllerCreateMutation,
   useOrderControllerFindAllQuery,
+  useLazyOrderControllerFindAllQuery,
   useOrderControllerFindOneQuery,
+  useLazyOrderControllerFindOneQuery,
   useOrderControllerUpdateMutation,
   useOrderControllerRemoveMutation,
+  useRoutingControllerGeocodeQuery,
+  useLazyRoutingControllerGeocodeQuery,
 } = injectedRtkApi;

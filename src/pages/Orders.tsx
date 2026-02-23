@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Title,
   Table,
@@ -11,7 +12,7 @@ import {
   Badge,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
-import { IconPlus, IconTrash } from "@tabler/icons-react";
+import { IconPlus, IconTrash, IconRoute } from "@tabler/icons-react";
 import {
   useOrderControllerFindAllQuery,
   useOrderControllerRemoveMutation,
@@ -52,6 +53,7 @@ const PLAN_STATUS_COLOR: Record<string, string> = {
 const LIMIT = 10;
 
 export default function Orders() {
+  const navigate = useNavigate();
   const [page, setPage] = useState(1);
   const [opened, { open, close }] = useDisclosure(false);
   const { data: activeOrg } = useActiveOrganization();
@@ -140,6 +142,15 @@ export default function Orders() {
                   <Table.Td>
                     <ActionMenu
                       groups={[
+                        {
+                          items: [
+                            {
+                              label: "Plan delivery",
+                              leftSection: <IconRoute size={16} />,
+                              onClick: () => navigate(`/planning/${order.id}`),
+                            },
+                          ],
+                        },
                         {
                           label: "Danger Zone",
                           items: [

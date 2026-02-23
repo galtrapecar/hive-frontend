@@ -1,6 +1,6 @@
+import { useState } from "react";
 import {
   Modal,
-  TextInput,
   NumberInput,
   Textarea,
   Stack,
@@ -9,22 +9,37 @@ import {
   Text,
   LoadingOverlay,
   Box,
+  TextInput,
+  Collapse,
+  UnstyledButton,
 } from "@mantine/core";
 import { DateTimePicker } from "@mantine/dates";
 import { Dropzone, MIME_TYPES } from "@mantine/dropzone";
 import { useForm } from "@mantine/form";
-import { IconUpload, IconFileText, IconX } from "@tabler/icons-react";
+import {
+  IconUpload,
+  IconFileText,
+  IconX,
+  IconChevronDown,
+  IconChevronRight,
+} from "@tabler/icons-react";
 import { useOrderControllerCreateMutation } from "../redux/generatedApi";
 import { useAiControllerExtractOrderFromFileMutation } from "../redux/generatedApi";
 import { useActiveOrganization } from "../lib/auth-client";
+import AddressAutocomplete from "./AddressAutocomplete";
+import type { GeocodeResponseItemDto } from "../redux/generatedApi";
 
 interface OrderFormValues {
   customer: string;
   price: number;
   weight: number;
   pickupPoint: string;
+  pickupLat: number | null;
+  pickupLng: number | null;
   pickupTime: Date | null;
   dropoffPoint: string;
+  dropoffLat: number | null;
+  dropoffLng: number | null;
   dropoffTime: Date | null;
   description: string;
 }
@@ -41,6 +56,8 @@ export default function AddOrderModal({
   onCreated,
 }: AddOrderModalProps) {
   const { data: activeOrg } = useActiveOrganization();
+  const [pickupCoordsOpen, setPickupCoordsOpen] = useState(false);
+  const [dropoffCoordsOpen, setDropoffCoordsOpen] = useState(false);
 
   const [createOrder, { isLoading: isCreating }] =
     useOrderControllerCreateMutation();
@@ -55,8 +72,12 @@ export default function AddOrderModal({
       price: 0,
       weight: 0,
       pickupPoint: "",
+      pickupLat: null,
+      pickupLng: null,
       pickupTime: null,
       dropoffPoint: "",
+      dropoffLat: null,
+      dropoffLng: null,
       dropoffTime: null,
       description: "",
     },
@@ -84,8 +105,12 @@ export default function AddOrderModal({
         price: values.price,
         weight: values.weight,
         pickupPoint: values.pickupPoint,
+        pickupLat: values.pickupLat ?? undefined,
+        pickupLng: values.pickupLng ?? undefined,
         pickupTime: new Date(values.pickupTime!).toISOString(),
         dropoffPoint: values.dropoffPoint,
+        dropoffLat: values.dropoffLat ?? undefined,
+        dropoffLng: values.dropoffLng ?? undefined,
         dropoffTime: new Date(values.dropoffTime!).toISOString(),
         description: values.description || undefined,
         organizationId: activeOrg.id,
@@ -114,8 +139,12 @@ export default function AddOrderModal({
         price: result.price || 0,
         weight: result.weight || 0,
         pickupPoint: result.pickupPoint || "",
+        pickupLat: (result.pickupLat as number) || null,
+        pickupLng: (result.pickupLng as number) || null,
         pickupTime: result.pickupTime ? new Date(result.pickupTime) : null,
         dropoffPoint: result.dropoffPoint || "",
+        dropoffLat: (result.dropoffLat as number) || null,
+        dropoffLng: (result.dropoffLng as number) || null,
         dropoffTime: result.dropoffTime ? new Date(result.dropoffTime) : null,
         description: result.description || "",
       });
@@ -126,7 +155,19 @@ export default function AddOrderModal({
 
   const handleClose = () => {
     form.reset();
+    setPickupCoordsOpen(false);
+    setDropoffCoordsOpen(false);
     onClose();
+  };
+
+  const handlePickupSelect = (item: GeocodeResponseItemDto) => {
+    form.setFieldValue("pickupLat", item.lat);
+    form.setFieldValue("pickupLng", item.lng);
+  };
+
+  const handleDropoffSelect = (item: GeocodeResponseItemDto) => {
+    form.setFieldValue("dropoffLat", item.lat);
+    form.setFieldValue("dropoffLng", item.lng);
   };
 
   return (
@@ -193,12 +234,17 @@ export default function AddOrderModal({
                   {...form.getInputProps("weight")}
                 />
               </Group>
+
+              {/* Pickup */}
               <Group grow>
-                <TextInput
+                <AddressAutocomplete
                   label="Pickup Point"
                   placeholder="Pickup address"
                   withAsterisk
-                  {...form.getInputProps("pickupPoint")}
+                  value={form.values.pickupPoint}
+                  onChange={(v) => form.setFieldValue("pickupPoint", v)}
+                  onSelect={handlePickupSelect}
+                  error={form.errors.pickupPoint as string}
                 />
                 <DateTimePicker
                   label="Pickup Time"
@@ -208,12 +254,51 @@ export default function AddOrderModal({
                   {...form.getInputProps("pickupTime")}
                 />
               </Group>
+              <UnstyledButton
+                onClick={() => setPickupCoordsOpen((o) => !o)}
+                style={{ display: "flex", alignItems: "center", gap: 4 }}
+              >
+                {pickupCoordsOpen ? (
+                  <IconChevronDown size={14} />
+                ) : (
+                  <IconChevronRight size={14} />
+                )}
+                <Text size="xs" c="dimmed">
+                  Pickup coordinates
+                  {form.values.pickupLat != null &&
+                    form.values.pickupLng != null &&
+                    ` (${form.values.pickupLat.toFixed(4)}, ${form.values.pickupLng.toFixed(4)})`}
+                </Text>
+              </UnstyledButton>
+              <Collapse in={pickupCoordsOpen}>
+                <Group grow>
+                  <NumberInput
+                    label="Latitude"
+                    placeholder="0.000000"
+                    decimalScale={6}
+                    step={0.0001}
+                    {...form.getInputProps("pickupLat")}
+                  />
+                  <NumberInput
+                    label="Longitude"
+                    placeholder="0.000000"
+                    decimalScale={6}
+                    step={0.0001}
+                    {...form.getInputProps("pickupLng")}
+                  />
+                </Group>
+              </Collapse>
+
+              {/* Dropoff */}
               <Group grow>
-                <TextInput
+                <AddressAutocomplete
                   label="Dropoff Point"
                   placeholder="Dropoff address"
                   withAsterisk
-                  {...form.getInputProps("dropoffPoint")}
+                  value={form.values.dropoffPoint}
+                  onChange={(v) => form.setFieldValue("dropoffPoint", v)}
+                  onSelect={handleDropoffSelect}
+                  error={form.errors.dropoffPoint as string}
                 />
                 <DateTimePicker
                   label="Dropoff Time"
@@ -223,6 +308,41 @@ export default function AddOrderModal({
                   {...form.getInputProps("dropoffTime")}
                 />
               </Group>
+              <UnstyledButton
+                onClick={() => setDropoffCoordsOpen((o) => !o)}
+                style={{ display: "flex", alignItems: "center", gap: 4 }}
+              >
+                {dropoffCoordsOpen ? (
+                  <IconChevronDown size={14} />
+                ) : (
+                  <IconChevronRight size={14} />
+                )}
+                <Text size="xs" c="dimmed">
+                  Dropoff coordinates
+                  {form.values.dropoffLat != null &&
+                    form.values.dropoffLng != null &&
+                    ` (${form.values.dropoffLat.toFixed(4)}, ${form.values.dropoffLng.toFixed(4)})`}
+                </Text>
+              </UnstyledButton>
+              <Collapse in={dropoffCoordsOpen}>
+                <Group grow>
+                  <NumberInput
+                    label="Latitude"
+                    placeholder="0.000000"
+                    decimalScale={6}
+                    step={0.0001}
+                    {...form.getInputProps("dropoffLat")}
+                  />
+                  <NumberInput
+                    label="Longitude"
+                    placeholder="0.000000"
+                    decimalScale={6}
+                    step={0.0001}
+                    {...form.getInputProps("dropoffLng")}
+                  />
+                </Group>
+              </Collapse>
+
               <Textarea
                 label="Description"
                 placeholder="Optional notes"

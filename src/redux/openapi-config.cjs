@@ -5,7 +5,7 @@ const config = {
   apiImport: "baseApi",
   outputFile: "./generatedApi.ts",
   exportName: "generatedApi",
-  hooks: true,
+  hooks: { queries: true, lazyQueries: true, mutations: true },
   endpointOverrides: [
     {
       pattern: "aiControllerExtractOrderFromFile",

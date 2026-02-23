@@ -14,7 +14,7 @@ import {
   Loader,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
-import { authClient, signIn, signUp, useSession } from "../lib/auth-client";
+import { signIn, signUp, useSession } from "../lib/auth-client";
 import Logo from "../assets/logo-dark.svg?react";
 
 interface FormValues {
@@ -26,7 +26,7 @@ interface FormValues {
 export default function Login() {
   const navigate = useNavigate();
   const { data: session, isPending } = useSession();
-  const [isSignUp, setIsSignUp] = useState(false)
+  const [isSignUp, setIsSignUp] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 

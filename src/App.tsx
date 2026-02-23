@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Login from "./pages/Login";
 import Home from "./pages/Home";
 import Orders from "./pages/Orders";
+import Planning from "./pages/Planning";
 import CreateOrganization from "./pages/CreateOrganization";
 import ProtectedRoute from "./components/ProtectedRoute";
 import MainLayout from "./components/MainLayout";
@@ -44,6 +45,14 @@ export default function App() {
             element={
               <ProtectedRoute requireOrganization={false}>
                 <CreateOrganization />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/planning/:orderId"
+            element={
+              <ProtectedRoute>
+                <Planning />
               </ProtectedRoute>
             }
           />
