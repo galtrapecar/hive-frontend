@@ -88,6 +88,19 @@ const injectedRtkApi = api.injectEndpoints({
         },
       }),
     }),
+    routingControllerReverseGeocode: build.query<
+      RoutingControllerReverseGeocodeApiResponse,
+      RoutingControllerReverseGeocodeApiArg
+    >({
+      query: (queryArg) => ({
+        url: `/routing/reverse-geocode`,
+        params: {
+          lat: queryArg.lat,
+          lng: queryArg.lng,
+          limit: queryArg.limit,
+        },
+      }),
+    }),
   }),
   overrideExisting: false,
 });
@@ -138,6 +151,13 @@ export type RoutingControllerGeocodeApiResponse =
   /** status 200  */ GeocodeResponseItemDto[];
 export type RoutingControllerGeocodeApiArg = {
   q: string;
+  limit?: number;
+};
+export type RoutingControllerReverseGeocodeApiResponse =
+  /** status 200  */ GeocodeResponseItemDto[];
+export type RoutingControllerReverseGeocodeApiArg = {
+  lat: number;
+  lng: number;
   limit?: number;
 };
 export type ExtractedOrderDto = {
@@ -244,4 +264,6 @@ export const {
   useOrderControllerRemoveMutation,
   useRoutingControllerGeocodeQuery,
   useLazyRoutingControllerGeocodeQuery,
+  useRoutingControllerReverseGeocodeQuery,
+  useLazyRoutingControllerReverseGeocodeQuery,
 } = injectedRtkApi;
