@@ -35,10 +35,16 @@ export default function AddressAutocomplete({
     debounce(async (q: string) => {
       try {
         const results = await trigger({ q, limit: 5 }).unwrap();
-        const mapped = results.map((r) => ({
-          value: [r.name, r.city, r.country].filter(Boolean).join(", "),
-          item: r,
-        }));
+        const seen = new Map<string, number>();
+        const mapped = results.map((r) => {
+          let label = r.name ?? [r.city, r.country].filter(Boolean).join(", ");
+          const count = seen.get(label) ?? 0;
+          seen.set(label, count + 1);
+          if (count > 0) {
+            label = `${label} (${count + 1})`;
+          }
+          return { value: label, item: r };
+        });
         setOptions(mapped);
       } catch {
         setOptions([]);
