@@ -17,7 +17,13 @@ import {
   Divider,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
-import { IconUsers, IconLogout, IconFile3d, IconTruckDelivery } from "@tabler/icons-react";
+import {
+  IconUsers,
+  IconLogout,
+  IconTruckDelivery,
+  IconDashboard,
+  IconTruck,
+} from "@tabler/icons-react";
 import Logo from "../assets/logo-dark.svg?react";
 import {
   signOut,
@@ -28,9 +34,10 @@ import {
 } from "../lib/auth-client";
 
 const menuItems = [
-  { label: "Plans", icon: IconFile3d, to: "/" },
+  { label: "Dashboard", icon: IconDashboard, to: "/" },
   { label: "Orders", icon: IconTruckDelivery, to: "/orders" },
   { label: "Drivers", icon: IconUsers, to: "/drivers" },
+  { label: "Vehicles", icon: IconTruck, to: "/vehicles" },
 ];
 
 export default function MainLayout() {

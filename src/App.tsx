@@ -7,9 +7,10 @@ import Login from "./pages/Login";
 import Home from "./pages/Home";
 import Orders from "./pages/Orders";
 import Planning from "./pages/Planning";
-import CreateOrganization from "./pages/CreateOrganization";
+import { CreateOrganization } from "./pages/CreateOrganization";
 import ProtectedRoute from "./components/ProtectedRoute";
 import MainLayout from "./components/MainLayout";
+import { Vehicles } from "./pages/Vehicles";
 
 const theme = createTheme({
   white: "#FFFCF1",
@@ -66,6 +67,7 @@ export default function App() {
           >
             <Route index element={<Home />} />
             <Route path="orders" element={<Orders />} />
+            <Route path="vehicles" element={<Vehicles />} />
           </Route>
         </Routes>
       </BrowserRouter>

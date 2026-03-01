@@ -1,9 +1,5 @@
 import { Navigate, useLocation } from "react-router-dom";
-import {
-  useSession,
-  useListOrganizations,
-  authClient,
-} from "../lib/auth-client";
+import { useSession, authClient } from "../lib/auth-client";
 import { Center, Loader } from "@mantine/core";
 import { useEffect, useState, useRef } from "react";
 
@@ -18,12 +14,14 @@ export default function ProtectedRoute({
 }: ProtectedRouteProps) {
   const location = useLocation();
   const { data: session, isPending: sessionPending } = useSession();
-  const { data: organizations, isPending: orgsPending } =
-    useListOrganizations();
   const [isSettingOrg, setIsSettingOrg] = useState(false);
+  const [hasOrganizations, setHasOrganizations] = useState<boolean | null>(
+    null,
+  );
   const hasSetOrgRef = useRef(false);
 
-  const isPending = sessionPending || (session && orgsPending) || isSettingOrg;
+  const isPending =
+    sessionPending || (session && hasOrganizations === null) || isSettingOrg;
 
   useEffect(() => {
     const setActiveOrg = async () => {
@@ -33,10 +31,15 @@ export default function ProtectedRoute({
         try {
           const orgs = await authClient.organization.list();
           if (orgs.data && orgs.data.length > 0) {
+            setHasOrganizations(true);
             await authClient.organization.setActive({
               organizationId: orgs.data[0].id,
             });
+          } else {
+            setHasOrganizations(false);
           }
+        } catch {
+          setHasOrganizations(false);
         } finally {
           setIsSettingOrg(false);
         }
@@ -56,8 +59,6 @@ export default function ProtectedRoute({
   if (!session) {
     return <Navigate to="/login" replace />;
   }
-
-  const hasOrganizations = organizations && organizations.length > 0;
 
   if (requireOrganization && !hasOrganizations) {
     return <Navigate to="/create-organization" replace />;

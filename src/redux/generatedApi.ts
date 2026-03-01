@@ -101,6 +101,65 @@ const injectedRtkApi = api.injectEndpoints({
         },
       }),
     }),
+    vehicleControllerCreate: build.mutation<
+      VehicleControllerCreateApiResponse,
+      VehicleControllerCreateApiArg
+    >({
+      query: (queryArg) => ({
+        url: `/vehicle`,
+        method: "POST",
+        body: queryArg.createVehicleDto,
+      }),
+    }),
+    vehicleControllerFindAll: build.query<
+      VehicleControllerFindAllApiResponse,
+      VehicleControllerFindAllApiArg
+    >({
+      query: (queryArg) => ({
+        url: `/vehicle`,
+        params: {
+          organizationId: queryArg.organizationId,
+          page: queryArg.page,
+          limit: queryArg.limit,
+        },
+      }),
+    }),
+    vehicleControllerFindOne: build.query<
+      VehicleControllerFindOneApiResponse,
+      VehicleControllerFindOneApiArg
+    >({
+      query: (queryArg) => ({
+        url: `/vehicle/${queryArg.id}`,
+        params: {
+          organizationId: queryArg.organizationId,
+        },
+      }),
+    }),
+    vehicleControllerUpdate: build.mutation<
+      VehicleControllerUpdateApiResponse,
+      VehicleControllerUpdateApiArg
+    >({
+      query: (queryArg) => ({
+        url: `/vehicle/${queryArg.id}`,
+        method: "PATCH",
+        body: queryArg.updateVehicleDto,
+        params: {
+          organizationId: queryArg.organizationId,
+        },
+      }),
+    }),
+    vehicleControllerRemove: build.mutation<
+      VehicleControllerRemoveApiResponse,
+      VehicleControllerRemoveApiArg
+    >({
+      query: (queryArg) => ({
+        url: `/vehicle/${queryArg.id}`,
+        method: "DELETE",
+        params: {
+          organizationId: queryArg.organizationId,
+        },
+      }),
+    }),
   }),
   overrideExisting: false,
 });
@@ -160,6 +219,37 @@ export type RoutingControllerReverseGeocodeApiArg = {
   lng: number;
   limit?: number;
 };
+export type VehicleControllerCreateApiResponse =
+  /** status 201  */ VehicleResponseDto;
+export type VehicleControllerCreateApiArg = {
+  createVehicleDto: CreateVehicleDto;
+};
+export type VehicleControllerFindAllApiResponse =
+  /** status 200  */ PaginatedVehicleResponseDto;
+export type VehicleControllerFindAllApiArg = {
+  organizationId: string;
+  page?: string;
+  limit?: string;
+};
+export type VehicleControllerFindOneApiResponse =
+  /** status 200  */ VehicleResponseDto;
+export type VehicleControllerFindOneApiArg = {
+  id: number;
+  organizationId: string;
+};
+export type VehicleControllerUpdateApiResponse =
+  /** status 200  */ VehicleResponseDto;
+export type VehicleControllerUpdateApiArg = {
+  id: number;
+  organizationId: string;
+  updateVehicleDto: UpdateVehicleDto;
+};
+export type VehicleControllerRemoveApiResponse =
+  /** status 200  */ VehicleResponseDto;
+export type VehicleControllerRemoveApiArg = {
+  id: number;
+  organizationId: string;
+};
 export type ExtractedOrderDto = {
   customer: string;
   price: number;
@@ -188,12 +278,12 @@ export type OrderResponseDto = {
   price: number;
   weight: number;
   pickupPoint: string;
-  pickupLat?: object;
-  pickupLng?: object;
+  pickupLat?: number | null;
+  pickupLng?: number | null;
   pickupTime: string;
   dropoffPoint: string;
-  dropoffLat?: object;
-  dropoffLng?: object;
+  dropoffLat?: number | null;
+  dropoffLng?: number | null;
   dropoffTime: string;
   description?: string;
   plan?: PlanDto | null;
@@ -251,6 +341,170 @@ export type GeocodeResponseItemDto = {
   street?: string;
   housenumber?: string;
 };
+export type VehicleResponseDto = {
+  id: number;
+  organizationId: string;
+  registrationPlate: string;
+  internalNumber?: string | null;
+  type:
+    | "OTHER"
+    | "BOX_TRUCK"
+    | "WALKING_FLOOR"
+    | "COIL"
+    | "CONTAINER"
+    | "CAR_TRANSPORTER"
+    | "TANKER"
+    | "TARPAULIN"
+    | "FLATBED"
+    | "REFRIGERATOR"
+    | "TIPPER"
+    | "SILO";
+  make?: string | null;
+  model?: string | null;
+  year?: number | null;
+  vin?: string | null;
+  /** Payload capacity in kg */
+  payloadCapacity?: number | null;
+  /** Gross weight in kg */
+  grossWeight?: number | null;
+  /** Loading meters */
+  loadingMeters?: number | null;
+  /** Height in meters */
+  height?: number | null;
+  /** Width in meters */
+  width?: number | null;
+  /** Length in meters */
+  length?: number | null;
+  /** Volume in m³ */
+  volume?: number | null;
+  /** Number of axles */
+  axles?: number | null;
+  /** ADR dangerous goods class */
+  adrClass?:
+    | (
+        | "CLASS_1"
+        | "CLASS_2"
+        | "CLASS_3"
+        | "CLASS_4"
+        | "CLASS_5"
+        | "CLASS_6"
+        | "CLASS_7"
+        | "CLASS_8"
+        | "CLASS_9"
+      )
+    | null;
+  status: "ACTIVE" | "INACTIVE";
+  createdAt: string;
+  updatedAt: string;
+};
+export type CreateVehicleDto = {
+  organizationId: string;
+  registrationPlate: string;
+  internalNumber?: string;
+  type:
+    | "OTHER"
+    | "BOX_TRUCK"
+    | "WALKING_FLOOR"
+    | "COIL"
+    | "CONTAINER"
+    | "CAR_TRANSPORTER"
+    | "TANKER"
+    | "TARPAULIN"
+    | "FLATBED"
+    | "REFRIGERATOR"
+    | "TIPPER"
+    | "SILO";
+  make?: string;
+  model?: string;
+  year?: number;
+  vin?: string;
+  /** Height in meters */
+  height?: number;
+  /** Width in meters */
+  width?: number;
+  /** Length in meters */
+  length?: number;
+  /** Payload capacity in kg */
+  payloadCapacity?: number;
+  /** Gross weight in kg */
+  grossWeight?: number;
+  /** Loading meters */
+  loadingMeters?: number;
+  /** Volume in m³ */
+  volume?: number;
+  /** Number of axles */
+  axles?: number;
+  /** ADR dangerous goods class */
+  adrClass?:
+    | "CLASS_1"
+    | "CLASS_2"
+    | "CLASS_3"
+    | "CLASS_4"
+    | "CLASS_5"
+    | "CLASS_6"
+    | "CLASS_7"
+    | "CLASS_8"
+    | "CLASS_9";
+};
+export type PaginatedVehicleMetaDto = {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+};
+export type PaginatedVehicleResponseDto = {
+  data: VehicleResponseDto[];
+  meta: PaginatedVehicleMetaDto;
+};
+export type UpdateVehicleDto = {
+  organizationId?: string;
+  registrationPlate?: string;
+  internalNumber?: string;
+  type?:
+    | "OTHER"
+    | "BOX_TRUCK"
+    | "WALKING_FLOOR"
+    | "COIL"
+    | "CONTAINER"
+    | "CAR_TRANSPORTER"
+    | "TANKER"
+    | "TARPAULIN"
+    | "FLATBED"
+    | "REFRIGERATOR"
+    | "TIPPER"
+    | "SILO";
+  make?: string;
+  model?: string;
+  year?: number;
+  vin?: string;
+  /** Height in meters */
+  height?: number;
+  /** Width in meters */
+  width?: number;
+  /** Length in meters */
+  length?: number;
+  /** Payload capacity in kg */
+  payloadCapacity?: number;
+  /** Gross weight in kg */
+  grossWeight?: number;
+  /** Loading meters */
+  loadingMeters?: number;
+  /** Volume in m³ */
+  volume?: number;
+  /** Number of axles */
+  axles?: number;
+  /** ADR dangerous goods class */
+  adrClass?:
+    | "CLASS_1"
+    | "CLASS_2"
+    | "CLASS_3"
+    | "CLASS_4"
+    | "CLASS_5"
+    | "CLASS_6"
+    | "CLASS_7"
+    | "CLASS_8"
+    | "CLASS_9";
+};
 export const {
   useAppControllerGetHelloQuery,
   useLazyAppControllerGetHelloQuery,
@@ -266,4 +520,11 @@ export const {
   useLazyRoutingControllerGeocodeQuery,
   useRoutingControllerReverseGeocodeQuery,
   useLazyRoutingControllerReverseGeocodeQuery,
+  useVehicleControllerCreateMutation,
+  useVehicleControllerFindAllQuery,
+  useLazyVehicleControllerFindAllQuery,
+  useVehicleControllerFindOneQuery,
+  useLazyVehicleControllerFindOneQuery,
+  useVehicleControllerUpdateMutation,
+  useVehicleControllerRemoveMutation,
 } = injectedRtkApi;

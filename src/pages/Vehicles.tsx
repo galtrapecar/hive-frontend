@@ -14,23 +14,23 @@ import {
 import { useDisclosure } from "@mantine/hooks";
 import { IconPlus, IconTrash, IconRoute } from "@tabler/icons-react";
 import {
-  useOrderControllerFindAllQuery,
-  useOrderControllerRemoveMutation,
-  type PaginatedOrderResponseDto,
+  useVehicleControllerFindAllQuery,
+  useVehicleControllerRemoveMutation,
+  type PaginatedVehicleResponseDto,
+  type VehicleResponseDto,
 } from "../redux/generatedApi";
-import AddOrderModal from "../components/AddOrderModal";
+import AddVehicleModal from "../components/AddVehicleModal";
 import ActionMenu from "../components/ActionMenu";
 import { useActiveOrganization } from "../lib/auth-client";
 
-const PLAN_STATUS_COLOR: Record<string, string> = {
-  PENDING: "yellow",
-  IN_PROGRESS: "blue",
-  COMPLETED: "green",
-};
-
 const LIMIT = 10;
 
-export default function Orders() {
+const VEHICLE_STATUS_COLOR: Record<VehicleResponseDto["status"], string> = {
+  ACTIVE: "green",
+  INACTIVE: "gray",
+};
+
+export function Vehicles() {
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
   const [opened, { open, close }] = useDisclosure(false);
@@ -40,7 +40,7 @@ export default function Orders() {
     data: raw,
     isLoading,
     refetch,
-  } = useOrderControllerFindAllQuery(
+  } = useVehicleControllerFindAllQuery(
     {
       organizationId: activeOrg?.id || "",
       page: String(page),
@@ -51,70 +51,67 @@ export default function Orders() {
     },
   );
 
-  const [deleteOrder] = useOrderControllerRemoveMutation();
+  const [deleteVehicle] = useVehicleControllerRemoveMutation();
 
-  const handleDelete = async (orderId: number) => {
+  const handleDelete = async (vehicleId: number) => {
     if (!activeOrg?.id) return;
-    await deleteOrder({
-      id: orderId,
+    await deleteVehicle({
+      id: vehicleId,
       organizationId: activeOrg.id,
     }).unwrap();
     refetch();
   };
 
-  const response = raw as PaginatedOrderResponseDto | undefined;
-  const orders = response?.data ?? [];
+  const response = raw as PaginatedVehicleResponseDto | undefined;
+  const vehicles = response?.data ?? [];
   const totalPages = response?.meta?.totalPages ?? 1;
 
   return (
     <Box pos="relative">
       <Group justify="space-between" mb="md">
-        <Title order={2}>Orders</Title>
+        <Title order={2}>Vehicles</Title>
         <Button leftSection={<IconPlus size={16} />} onClick={open}>
-          Add Order
+          Add Vehicle
         </Button>
       </Group>
 
       <Box pos="relative" mih={200}>
         <LoadingOverlay visible={isLoading} />
 
-        {!isLoading && orders.length === 0 ? (
+        {!isLoading && vehicles.length === 0 ? (
           <Text c="dimmed" ta="center" py="xl">
-            No orders found.
+            No vehicles found.
           </Text>
         ) : (
           <Table striped highlightOnHover>
             <Table.Thead>
               <Table.Tr>
-                <Table.Th>Customer</Table.Th>
-                <Table.Th>Price</Table.Th>
-                <Table.Th>Weight</Table.Th>
-                <Table.Th>Pickup</Table.Th>
-                <Table.Th>Dropoff</Table.Th>
+                <Table.Th>Registration Plate</Table.Th>
+                <Table.Th>Type</Table.Th>
+                <Table.Th>Make / Model</Table.Th>
+                <Table.Th>Payload (kg)</Table.Th>
+                <Table.Th>Gross Weight (kg)</Table.Th>
                 <Table.Th>Status</Table.Th>
                 <Table.Th>Actions</Table.Th>
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>
-              {orders.map((order) => (
-                <Table.Tr key={order.id}>
-                  <Table.Td>{order.customer}</Table.Td>
-                  <Table.Td>{order.price}</Table.Td>
-                  <Table.Td>{order.weight}</Table.Td>
-                  <Table.Td>{order.pickupPoint}</Table.Td>
-                  <Table.Td>{order.dropoffPoint}</Table.Td>
+              {vehicles.map((vehicle) => (
+                <Table.Tr key={vehicle.id}>
+                  <Table.Td>{vehicle.registrationPlate}</Table.Td>
+                  <Table.Td>{vehicle.type.replaceAll("_", " ")}</Table.Td>
+                  <Table.Td>
+                    {[vehicle.make, vehicle.model].filter(Boolean).join(" ") ||
+                      "—"}
+                  </Table.Td>
+                  <Table.Td>{vehicle.payloadCapacity ?? "—"}</Table.Td>
+                  <Table.Td>{vehicle.grossWeight ?? "—"}</Table.Td>
                   <Table.Td>
                     <Badge
-                      color={
-                        order.plan
-                          ? PLAN_STATUS_COLOR[order.plan.status]
-                          : "gray"
-                      }
+                      color={VEHICLE_STATUS_COLOR[vehicle.status]}
                       variant="light"
                     >
-                      {order.plan
-                        ? order.plan.status.replace("_", " ")
-                        : "Unplanned"}
+                      {vehicle.status}
                     </Badge>
                   </Table.Td>
                   <Table.Td>
@@ -125,7 +122,8 @@ export default function Orders() {
                             {
                               label: "Plan delivery",
                               leftSection: <IconRoute size={16} />,
-                              onClick: () => navigate(`/planning/${order.id}`),
+                              onClick: () =>
+                                navigate(`/planning/${vehicle.id}`),
                             },
                           ],
                         },
@@ -136,8 +134,8 @@ export default function Orders() {
                               label: "Delete",
                               leftSection: <IconTrash size={16} />,
                               danger: true,
-                              onConfirm: () => handleDelete(order.id),
-                              confirmTitle: "Delete order?",
+                              onConfirm: () => handleDelete(vehicle.id),
+                              confirmTitle: "Delete vehicle?",
                               confirmDescription:
                                 "This action cannot be undone.",
                             },
@@ -157,7 +155,7 @@ export default function Orders() {
         <Pagination total={totalPages} value={page} onChange={setPage} />
       </Group>
 
-      <AddOrderModal opened={opened} onClose={close} onCreated={refetch} />
+      <AddVehicleModal opened={opened} onClose={close} onCreated={refetch} />
     </Box>
   );
 }

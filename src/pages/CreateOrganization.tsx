@@ -46,7 +46,7 @@ const features = [
   },
 ];
 
-export default function CreateOrganization() {
+export function CreateOrganization() {
   const navigate = useNavigate();
   const { data: session, isPending } = useSession();
   const [loading, setLoading] = useState(false);
