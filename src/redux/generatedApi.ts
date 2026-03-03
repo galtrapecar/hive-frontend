@@ -170,6 +170,7 @@ const injectedRtkApi = api.injectEndpoints({
           organizationId: queryArg.organizationId,
           page: queryArg.page,
           limit: queryArg.limit,
+          search: queryArg.search,
         },
       }),
     }),
@@ -368,6 +369,8 @@ export type DriverControllerFindAllApiArg = {
   organizationId: string;
   page?: string;
   limit?: string;
+  /** Search by name, full name, or email */
+  search?: string;
 };
 export type DriverControllerFindOneApiResponse =
   /** status 200  */ DriverResponseDto;
@@ -676,7 +679,7 @@ export type UpdateVehicleDto = {
 export type DriverResponseDto = {
   memberId: string;
   role: string;
-  fullName: object | null;
+  fullName: string | null;
   joinedAt: string;
   id: string;
   name: string;

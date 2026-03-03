@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import {
   Title,
   Table,
@@ -6,6 +6,7 @@ import {
   Pagination,
   Group,
   Text,
+  TextInput,
   LoadingOverlay,
   Box,
   Badge,
@@ -19,6 +20,7 @@ import {
   IconUsers,
   IconMail,
   IconCopy,
+  IconSearch,
 } from "@tabler/icons-react";
 import {
   useDriverControllerFindAllQuery,
@@ -28,6 +30,7 @@ import {
 import ActionMenu from "../components/ActionMenu";
 import InviteDriverModal from "../components/InviteDriverModal";
 import { organization, useActiveOrganization } from "../lib/auth-client";
+import _ from "lodash";
 
 interface Invitation {
   id: string;
@@ -40,7 +43,15 @@ interface Invitation {
 const LIMIT = 10;
 
 export default function Drivers() {
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [page, setPage] = useState(1);
+
+  const debouncedSetSearch = _.debounce((value: string) => {
+    setDebouncedSearch(value);
+    setPage(1);
+  }, 300);
+
   const [opened, { open, close }] = useDisclosure(false);
   const { data: activeOrg } = useActiveOrganization();
 
@@ -53,6 +64,7 @@ export default function Drivers() {
       organizationId: activeOrg?.id || "",
       page: String(page),
       limit: String(LIMIT),
+      search: debouncedSearch || undefined,
     },
     {
       skip: !activeOrg?.id,
@@ -64,7 +76,7 @@ export default function Drivers() {
   const [invitations, setInvitations] = useState<Invitation[]>([]);
   const [invitationsLoading, setInvitationsLoading] = useState(false);
 
-  const fetchInvitations = useCallback(async () => {
+  const fetchInvitations = async () => {
     if (!activeOrg?.id) return;
     setInvitationsLoading(true);
     try {
@@ -77,11 +89,11 @@ export default function Drivers() {
     } finally {
       setInvitationsLoading(false);
     }
-  }, [activeOrg?.id]);
+  };
 
   useEffect(() => {
     fetchInvitations();
-  }, [fetchInvitations]);
+  }, []);
 
   const handleCancelInvitation = async (invitationId: string) => {
     await organization.cancelInvitation({ invitationId });
@@ -115,6 +127,17 @@ export default function Drivers() {
         </Button>
       </Group>
 
+      <TextInput
+        placeholder="Search drivers..."
+        leftSection={<IconSearch size={16} />}
+        value={search}
+        onChange={(e) => {
+          setSearch(e.currentTarget.value);
+          debouncedSetSearch(e.currentTarget.value);
+        }}
+        mb="md"
+      />
+
       <Tabs defaultValue="drivers">
         <Tabs.List>
           <Tabs.Tab value="drivers" leftSection={<IconUsers size={16} />}>
@@ -144,7 +167,6 @@ export default function Drivers() {
                   <Table.Tr>
                     <Table.Th>Name</Table.Th>
                     <Table.Th>Email</Table.Th>
-                    <Table.Th>Role</Table.Th>
                     <Table.Th>Joined</Table.Th>
                     <Table.Th>Actions</Table.Th>
                   </Table.Tr>
@@ -152,11 +174,8 @@ export default function Drivers() {
                 <Table.Tbody>
                   {drivers.map((driver) => (
                     <Table.Tr key={driver.memberId}>
-                      <Table.Td>{driver.fullName as string}</Table.Td>
+                      <Table.Td>{driver.fullName}</Table.Td>
                       <Table.Td>{driver.email}</Table.Td>
-                      <Table.Td>
-                        <Badge variant="light">{driver.role}</Badge>
-                      </Table.Td>
                       <Table.Td>
                         {new Date(driver.joinedAt).toLocaleDateString()}
                       </Table.Td>

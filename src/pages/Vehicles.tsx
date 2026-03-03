@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import {
   Title,
   Table,
@@ -12,7 +11,7 @@ import {
   Badge,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
-import { IconPlus, IconTrash, IconRoute } from "@tabler/icons-react";
+import { IconPlus, IconTrash, IconUserPlus } from "@tabler/icons-react";
 import {
   useVehicleControllerFindAllQuery,
   useVehicleControllerRemoveMutation,
@@ -20,6 +19,7 @@ import {
   type VehicleResponseDto,
 } from "../redux/generatedApi";
 import AddVehicleModal from "../components/AddVehicleModal";
+import AssignDriverModal from "../components/AssignDriverModal";
 import ActionMenu from "../components/ActionMenu";
 import { useActiveOrganization } from "../lib/auth-client";
 
@@ -31,9 +31,11 @@ const VEHICLE_STATUS_COLOR: Record<VehicleResponseDto["status"], string> = {
 };
 
 export function Vehicles() {
-  const navigate = useNavigate();
   const [page, setPage] = useState(1);
   const [opened, { open, close }] = useDisclosure(false);
+  const [assignOpened, { open: openAssign, close: closeAssign }] =
+    useDisclosure(false);
+  const [assignVehicleId, setAssignVehicleId] = useState<number | null>(null);
   const { data: activeOrg } = useActiveOrganization();
 
   const {
@@ -120,10 +122,12 @@ export function Vehicles() {
                         {
                           items: [
                             {
-                              label: "Plan delivery",
-                              leftSection: <IconRoute size={16} />,
-                              onClick: () =>
-                                navigate(`/planning/${vehicle.id}`),
+                              label: "Assign driver",
+                              leftSection: <IconUserPlus size={16} />,
+                              onClick: () => {
+                                setAssignVehicleId(vehicle.id);
+                                openAssign();
+                              },
                             },
                           ],
                         },
@@ -156,6 +160,12 @@ export function Vehicles() {
       </Group>
 
       <AddVehicleModal opened={opened} onClose={close} onCreated={refetch} />
+      <AssignDriverModal
+        opened={assignOpened}
+        onClose={closeAssign}
+        vehicleId={assignVehicleId}
+        onAssigned={refetch}
+      />
     </Box>
   );
 }
