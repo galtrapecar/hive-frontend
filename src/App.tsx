@@ -11,6 +11,9 @@ import { CreateOrganization } from "./pages/CreateOrganization";
 import ProtectedRoute from "./components/ProtectedRoute";
 import MainLayout from "./components/MainLayout";
 import { Vehicles } from "./pages/Vehicles";
+import Drivers from "./pages/Drivers";
+import Forbidden from "./pages/Forbidden";
+import AcceptInvitation from "./pages/AcceptInvitation";
 
 const theme = createTheme({
   white: "#FFFCF1",
@@ -41,6 +44,15 @@ export default function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/forbidden" element={<Forbidden />} />
+          <Route
+            path="/accept-invitation"
+            element={
+              <ProtectedRoute requireOrganization={false}>
+                <AcceptInvitation />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/create-organization"
             element={
@@ -67,6 +79,7 @@ export default function App() {
           >
             <Route index element={<Home />} />
             <Route path="orders" element={<Orders />} />
+            <Route path="drivers" element={<Drivers />} />
             <Route path="vehicles" element={<Vehicles />} />
           </Route>
         </Routes>

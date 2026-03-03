@@ -85,7 +85,7 @@ export function CreateOrganization() {
     setError(null);
 
     try {
-      const { error } = await organization.create({
+      const { data, error } = await organization.create({
         name: values.name,
         slug: values.slug,
       });
@@ -94,6 +94,10 @@ export function CreateOrganization() {
         setError(error.message || "Failed to create organization");
         return;
       }
+
+      await organization.setActive({
+        organizationId: data!.id,
+      });
 
       navigate("/");
     } catch {

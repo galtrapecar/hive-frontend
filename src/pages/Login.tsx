@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   TextInput,
   PasswordInput,
@@ -25,6 +25,8 @@ interface FormValues {
 
 export default function Login() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirect = searchParams.get("redirect") || "/";
   const { data: session, isPending } = useSession();
   const [isSignUp, setIsSignUp] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -32,9 +34,9 @@ export default function Login() {
 
   useEffect(() => {
     if (session) {
-      navigate("/", { replace: true });
+      navigate(redirect, { replace: true });
     }
-  }, [session, navigate]);
+  }, [session, navigate, redirect]);
 
   const form = useForm<FormValues>({
     mode: "uncontrolled",
@@ -79,7 +81,7 @@ export default function Login() {
           return;
         }
       }
-      navigate("/");
+      navigate(redirect);
     } catch {
       setError("An unexpected error occurred");
     } finally {

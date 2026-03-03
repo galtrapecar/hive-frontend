@@ -160,6 +160,118 @@ const injectedRtkApi = api.injectEndpoints({
         },
       }),
     }),
+    driverControllerFindAll: build.query<
+      DriverControllerFindAllApiResponse,
+      DriverControllerFindAllApiArg
+    >({
+      query: (queryArg) => ({
+        url: `/driver`,
+        params: {
+          organizationId: queryArg.organizationId,
+          page: queryArg.page,
+          limit: queryArg.limit,
+        },
+      }),
+    }),
+    driverControllerFindOne: build.query<
+      DriverControllerFindOneApiResponse,
+      DriverControllerFindOneApiArg
+    >({
+      query: (queryArg) => ({
+        url: `/driver/${queryArg.memberId}`,
+        params: {
+          organizationId: queryArg.organizationId,
+        },
+      }),
+    }),
+    driverControllerUpdate: build.mutation<
+      DriverControllerUpdateApiResponse,
+      DriverControllerUpdateApiArg
+    >({
+      query: (queryArg) => ({
+        url: `/driver/${queryArg.memberId}`,
+        method: "PATCH",
+        body: queryArg.updateDriverDto,
+      }),
+    }),
+    driverControllerRemove: build.mutation<
+      DriverControllerRemoveApiResponse,
+      DriverControllerRemoveApiArg
+    >({
+      query: (queryArg) => ({
+        url: `/driver/${queryArg.memberId}`,
+        method: "DELETE",
+        params: {
+          organizationId: queryArg.organizationId,
+        },
+      }),
+    }),
+    driverControllerAssignVehicle: build.mutation<
+      DriverControllerAssignVehicleApiResponse,
+      DriverControllerAssignVehicleApiArg
+    >({
+      query: (queryArg) => ({
+        url: `/driver/${queryArg.memberId}/vehicles`,
+        method: "POST",
+        body: queryArg.assignVehicleDto,
+      }),
+    }),
+    driverControllerFindVehicles: build.query<
+      DriverControllerFindVehiclesApiResponse,
+      DriverControllerFindVehiclesApiArg
+    >({
+      query: (queryArg) => ({
+        url: `/driver/${queryArg.memberId}/vehicles`,
+        params: {
+          organizationId: queryArg.organizationId,
+        },
+      }),
+    }),
+    driverControllerUnassignVehicle: build.mutation<
+      DriverControllerUnassignVehicleApiResponse,
+      DriverControllerUnassignVehicleApiArg
+    >({
+      query: (queryArg) => ({
+        url: `/driver/${queryArg.memberId}/vehicles/${queryArg.vehicleId}`,
+        method: "DELETE",
+        params: {
+          organizationId: queryArg.organizationId,
+        },
+      }),
+    }),
+    driverControllerAssignPlan: build.mutation<
+      DriverControllerAssignPlanApiResponse,
+      DriverControllerAssignPlanApiArg
+    >({
+      query: (queryArg) => ({
+        url: `/driver/${queryArg.memberId}/plans`,
+        method: "POST",
+        body: queryArg.assignPlanDto,
+      }),
+    }),
+    driverControllerFindPlans: build.query<
+      DriverControllerFindPlansApiResponse,
+      DriverControllerFindPlansApiArg
+    >({
+      query: (queryArg) => ({
+        url: `/driver/${queryArg.memberId}/plans`,
+        params: {
+          organizationId: queryArg.organizationId,
+        },
+      }),
+    }),
+    driverControllerUnassignPlan: build.mutation<
+      DriverControllerUnassignPlanApiResponse,
+      DriverControllerUnassignPlanApiArg
+    >({
+      query: (queryArg) => ({
+        url: `/driver/${queryArg.memberId}/plans/${queryArg.planId}`,
+        method: "DELETE",
+        params: {
+          organizationId: queryArg.organizationId,
+        },
+      }),
+    }),
   }),
   overrideExisting: false,
 });
@@ -248,6 +360,62 @@ export type VehicleControllerRemoveApiResponse =
   /** status 200  */ VehicleResponseDto;
 export type VehicleControllerRemoveApiArg = {
   id: number;
+  organizationId: string;
+};
+export type DriverControllerFindAllApiResponse =
+  /** status 200  */ PaginatedDriverResponseDto;
+export type DriverControllerFindAllApiArg = {
+  organizationId: string;
+  page?: string;
+  limit?: string;
+};
+export type DriverControllerFindOneApiResponse =
+  /** status 200  */ DriverResponseDto;
+export type DriverControllerFindOneApiArg = {
+  memberId: string;
+  organizationId: string;
+};
+export type DriverControllerUpdateApiResponse = unknown;
+export type DriverControllerUpdateApiArg = {
+  memberId: string;
+  updateDriverDto: UpdateDriverDto;
+};
+export type DriverControllerRemoveApiResponse =
+  /** status 200  */ DriverRemoveResponseDto;
+export type DriverControllerRemoveApiArg = {
+  memberId: string;
+  organizationId: string;
+};
+export type DriverControllerAssignVehicleApiResponse = unknown;
+export type DriverControllerAssignVehicleApiArg = {
+  memberId: string;
+  assignVehicleDto: AssignVehicleDto;
+};
+export type DriverControllerFindVehiclesApiResponse = unknown;
+export type DriverControllerFindVehiclesApiArg = {
+  memberId: string;
+  organizationId: string;
+};
+export type DriverControllerUnassignVehicleApiResponse = unknown;
+export type DriverControllerUnassignVehicleApiArg = {
+  memberId: string;
+  vehicleId: number;
+  organizationId: string;
+};
+export type DriverControllerAssignPlanApiResponse = unknown;
+export type DriverControllerAssignPlanApiArg = {
+  memberId: string;
+  assignPlanDto: AssignPlanDto;
+};
+export type DriverControllerFindPlansApiResponse = unknown;
+export type DriverControllerFindPlansApiArg = {
+  memberId: string;
+  organizationId: string;
+};
+export type DriverControllerUnassignPlanApiResponse = unknown;
+export type DriverControllerUnassignPlanApiArg = {
+  memberId: string;
+  planId: number;
   organizationId: string;
 };
 export type ExtractedOrderDto = {
@@ -505,6 +673,38 @@ export type UpdateVehicleDto = {
     | "CLASS_8"
     | "CLASS_9";
 };
+export type DriverResponseDto = {
+  memberId: string;
+  role: string;
+  fullName: object | null;
+  joinedAt: string;
+  id: string;
+  name: string;
+  email: string;
+  createdAt: string;
+};
+export type PaginatedDriverResponseDto = {
+  data: DriverResponseDto[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+};
+export type UpdateDriverDto = {
+  organizationId: string;
+  fullName: string;
+};
+export type DriverRemoveResponseDto = {
+  message: string;
+};
+export type AssignVehicleDto = {
+  vehicleId: number;
+  organizationId: string;
+};
+export type AssignPlanDto = {
+  planId: number;
+  organizationId: string;
+};
 export const {
   useAppControllerGetHelloQuery,
   useLazyAppControllerGetHelloQuery,
@@ -527,4 +727,18 @@ export const {
   useLazyVehicleControllerFindOneQuery,
   useVehicleControllerUpdateMutation,
   useVehicleControllerRemoveMutation,
+  useDriverControllerFindAllQuery,
+  useLazyDriverControllerFindAllQuery,
+  useDriverControllerFindOneQuery,
+  useLazyDriverControllerFindOneQuery,
+  useDriverControllerUpdateMutation,
+  useDriverControllerRemoveMutation,
+  useDriverControllerAssignVehicleMutation,
+  useDriverControllerFindVehiclesQuery,
+  useLazyDriverControllerFindVehiclesQuery,
+  useDriverControllerUnassignVehicleMutation,
+  useDriverControllerAssignPlanMutation,
+  useDriverControllerFindPlansQuery,
+  useLazyDriverControllerFindPlansQuery,
+  useDriverControllerUnassignPlanMutation,
 } = injectedRtkApi;
